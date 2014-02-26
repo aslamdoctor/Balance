@@ -1,0 +1,72 @@
+<html>
+  <head>
+    <script src="https://apis.google.com/js/client.js"></script>
+    <script>
+      function auth() {
+        var config = {
+        'client_id': '457161246465-ttk9ko9oqe386d81uaga13n744mec3h0.apps.googleusercontent.com',
+          'scope': 'https://www.googleapis.com/auth/calendar'
+        };
+        gapi.auth.authorize(config, function() {
+          console.log('login complete');
+          console.log(gapi.auth.getToken());
+
+        });
+      }
+
+      function getCalendars() {
+          gapi.client.load('calendar', 'v3', function() {
+            var request = gapi.client.calendar.calendarList.list({
+              
+            });
+                  
+            request.execute(function(resp) {
+              for (var i = 0; i < resp.items.length; i++) {
+                var li = document.createElement('li');
+                li.appendChild(document.createTextNode(resp.items[i].summary + ": "+resp.items[i].id));
+                document.getElementById('calendars').appendChild(li);
+              }
+            });
+          });
+       }
+      
+      function getCalendarEvents() {
+          var d = new Date(2014, 1, 1)
+          gapi.client.load('calendar', 'v3', function() {
+            var request = gapi.client.calendar.events.list({
+              //'calendarId': 'fseo888mbm357lrp7655586864@group.calendar.google.com'
+                'calendarId': 'asmedrano@gmail.com',
+                'orderBy':'startTime',
+                'singleEvents':true,
+                'timeMin':d,
+
+            });
+                  
+            request.execute(function(resp) {
+              for (var i = 0; i < resp.items.length; i++) {
+                var li = document.createElement('li');
+                li.appendChild(document.createTextNode(resp.items[i].summary + ": "+ resp.items[i].start.dateTime));
+                document.getElementById('events').appendChild(li);
+              }
+            });
+          });
+       }
+
+    </script>
+  </head>
+
+  <body>
+    <h4> Cals</h4>
+    <ul id="calendars">
+
+    </ul>
+    <h4>Events</h4>
+    <ul id="events">
+
+    </ul>
+    <button onclick="auth();">Authorize</button>
+    <button onclick="getCalendars();">Get Cals</button>
+     <button onclick="getCalendarEvents();">Get Events</button>
+
+  </body>
+</html>

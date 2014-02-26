@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html ng-app="cal">
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <script src="https://apis.google.com/js/client.js"></script>
+</head>
+<body>
+    
+    <div id="" ng-controller="MainCtrl">
+        <button ng-show="!authenticated" ng-click="init()"> Authenticate</button>
+        <span ng-show="calExists"> Found Calendar</span>
+        <div>
+            <input ng-model="startDate" type="text">
+        </div>
+        <h4> S:{{sBalance}}</h4>
+        <table>
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Activity</th>
+                    <th>Balance</th>
+                </tr>
+            <thead>
+            <tbody>
+                <tr ng-repeat="e in events">
+                    <td>{{e.date}}</td> <td>{{e.summary}}</td> <td>${{e.balance}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+
+    <script src="static/js/libs/angular.min.js" type="text/javascript"></script>
+    <script src="static/js/app.js" type="text/javascript"></script>
+</body>
+</html>
