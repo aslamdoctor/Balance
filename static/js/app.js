@@ -1,22 +1,27 @@
-var app = angular.module("cal", []);
+var app = angular.module("cal", ["ngStorage"]);
 
 
-function MainCtrl($scope){
+function MainCtrl($scope, $localStorage){
+    $scope.$storage = $localStorage.$default({startDate:null, calId:null, calSummary:null, dateIsSet:false});
     $scope.calKey = "Balance";
     $scope.authenticated = false;
-    $scope.calExists = false;
     $scope.startDate = "1/1/2014";
+    $scope.cals = [];
+    $scope.calId;
+
     $scope.authenticate = function(callback){
         var config = {
             'client_id': '457161246465-ttk9ko9oqe386d81uaga13n744mec3h0.apps.googleusercontent.com',
             'scope': 'https://www.googleapis.com/auth/calendar'
         };
+
         gapi.auth.authorize(config, function() {
             $scope.authenticated = true;
             $scope.token = gapi.auth.getToken();
             $scope.$apply();
             callback();
         });
+        
     }
 
     $scope.getCalendars = function(){
@@ -24,63 +29,76 @@ function MainCtrl($scope){
             var request = gapi.client.calendar.calendarList.list();
             request.execute(function(resp){
                 // we got to find the right cal
+                
                 angular.forEach(resp.items, function(item){
-                    if(item.summary === $scope.calKey){
-                        $scope.calExists = true;
-                        $scope.calId = item.id;
-                        $scope.$apply();
-                        $scope.getEvents();
-                        return true;
-                    }
+                    $scope.cals.push({'summary':item.summary, 'id':item.id});
                 });
+                $scope.$apply()
             });
+            
         });
+    }
+    
+    $scope.setCal = function(event, cal){
+        event.preventDefault();
+        $scope.$storage.calId = cal.id;
+        $scope.$storage.calSummary = cal.summary;
+        $scope.calSelector = false;
+        $scope.$apply();
     }
 
     $scope.getEvents = function(){
-        var spl = $scope.startDate.split("/");
-        var y = parseInt(spl[2]);
-        var m = parseInt(spl[1]);
-        var d = parseInt(spl[0]);
-        var date = new Date(y, m, d);
+        var date = new Date($scope.$storage.startDate);
+        var prevD = new Date(date.getTime() + (-1 * 24 * 60 * 60 * 1000))
         var bal;
         var val;
-        $scope.events = [];
         
+        $scope.events = [];
         gapi.client.load('calendar', 'v3', function() {
+            console.log(prevD.toISOString())
             var request = gapi.client.calendar.events.list({
-                'calendarId': $scope.calId,
+                'calendarId': $scope.$storage.calId,
                 'orderBy':'startTime',
                 'singleEvents':true,
-                'timeMin': date
-             });
-
+                'timeMax': prevD.toISOString()
+            });
             request.execute(function(resp){
-                $scope.sBalance = $scope.parseValue(resp.items[0].summary).num;
-                $scope.rBalance = $scope.sBalance; // always reset running balance
-                angular.forEach(resp.items, function(item, i){
-                    // starting balance is always [0]
-                    if(i>0){
-                        val = $scope.parseValue(item.summary); // parse the value for this event
-                        if(val.op == "-"){
-                            bal = $scope.rBalance - val.num;
-                        }else if(val.op == "+"){
-                            bal = $scope.rBalance + val.num;
-                        }          
-                        
-                        $scope.events.push({
-                            summary:item.summary,
-                            date:$scope.getDate(item),
-                            balance:bal
-                        });
+                if(resp.hasOwnProperty("items")){
+                    $scope.sBalance = $scope.parseValue(resp.items[0].summary).num;
+                    $scope.rBalance = $scope.sBalance; // always reset running balance
+                    angular.forEach(resp.items, function(item, i){
+                        // starting balance is always [0]
+                        if(i>0){
+                            val = $scope.parseValue(item.summary); // parse the value for this event
+                            if(val.op == "-"){
+                                bal = $scope.rBalance - val.num;
+                            }else if(val.op == "+"){
+                                bal = $scope.rBalance + val.num;
+                            }          
+                            
+                            $scope.events.push({
+                                summary:item.summary,
+                                date:$scope.getDate(item),
+                                balance:bal
+                            });
 
-                        $scope.rBalance = bal;
-                    }
-                });
+                            $scope.rBalance = bal;
+                        }
+                    });
 
-                $scope.$apply();
+                    console.log($scope.events);
+                }else{
+                 
+                    console.log("No Events");
+                }
             });
          });
+    }
+
+    $scope.setDate = function(){
+        //TODO validate
+        $scope.$storage.dateIsSet = true;
+        $scope.getEvents();
     }
 
     $scope.parseValue = function(valueStr){
@@ -124,7 +142,18 @@ function MainCtrl($scope){
     };
 
     $scope.init = function(){
-        $scope.authenticate($scope.getCalendars);
+        $scope.authenticate(function(){
+            if($scope.$storage.calId == null){
+                $scope.calSelector = true;
+                $scope.getCalendars();
+            }else{
+                $scope.calSelector = false;
+                if($scope.$storage.startDate != null){
+                    $scope.getEvents();
+                }
+            }
+            
+        });
     }
 
 }

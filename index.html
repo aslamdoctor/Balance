@@ -8,30 +8,48 @@
 <body>
     
     <div id="" ng-controller="MainCtrl">
-        <button ng-show="!authenticated" ng-click="init()"> Authenticate</button>
-        <span ng-show="calExists"> Found Calendar</span>
-        <div>
-            <input ng-model="startDate" type="text">
-        </div>
-        <h4> S:{{sBalance}}</h4>
-        <table>
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Activity</th>
-                    <th>Balance</th>
-                </tr>
-            <thead>
-            <tbody>
-                <tr ng-repeat="e in events">
-                    <td>{{e.date}}</td> <td>{{e.summary}}</td> <td>${{e.balance}}</td>
-                </tr>
-            </tbody>
-        </table>
+        <h4 ng-show="!authenticated"> To get started
+        <button ng-click="init()"> Authenticate</button> 
+        with your google account </h4>
 
-    </div>
+        <div ng-show="authenticated && $storage.calId != null && $storage.dateIsSet == false" >
+            <label>3. Choose a Start Date</label>
+            <input ng-model="$storage.startDate" type="date"><button ng-click="setDate();">Done</button>
+        </div>
+        
+        <div id="calenders" ng-show="calSelector && authenticated">
+            <h2>2. Choose a Calendar</h2>
+            <ul>
+                <li ng-repeat="cal in cals"><a href="#" ng-click='setCal($event, cal)'>{{cal.summary}}</a></li>
+            </ul>
+        </div>
+
+        <div ng-show="authenticated">
+            <h2>{{$storage.calSummary}}</h2>
+            <h4>{{$storage.startDate}}</h4>
+            <div ng-show="events.length > 0">
+                <h4> Starting Balance: {{sBalance}}</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Activity</th>
+                            <th>Balance</th>
+                        </tr>
+                    <thead>
+                    <tbody>
+                        <tr ng-repeat="e in events">
+                            <td>{{e.date}}</td> <td>{{e.summary}}</td> <td>${{e.balance}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div><!-- end events wrap-->
+
+    </div> <!-end main-->
 
     <script src="static/js/libs/angular.min.js" type="text/javascript"></script>
+    <script src="static/js/libs/ngStorage.min.js" type="text/javascript"></script>
     <script src="static/js/app.js" type="text/javascript"></script>
 </body>
 </html>
