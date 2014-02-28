@@ -70,24 +70,26 @@ function MainCtrl($scope, $localStorage){
                     angular.forEach(resp.items, function(item, i){
                         // starting balance is always [0]
                         val = $scope.parseValue(item.summary); // parse the value for this event
-                        if(val.op == "-"){
-                            bal = $scope.rBalance - val.num;
-                        }else if(val.op == "+"){
-                            bal = $scope.rBalance + val.num;
-                        }          
-                        if(val.op != null){
-                            var rawDate = $scope.getDate(item);
-                            var parsedDate =  d3.time.format("%Y-%m-%d").parse(rawDate);
+                        if(val != null){
+                            if(val.op == "-"){
+                                bal = $scope.rBalance - val.num;
+                            }else if(val.op == "+"){
+                                bal = $scope.rBalance + val.num;
+                            }          
+                            if(val.op != null){
+                                var rawDate = $scope.getDate(item);
+                                var parsedDate =  d3.time.format("%Y-%m-%d").parse(rawDate);
 
-                            $scope.events.push({
-                                summary:item.summary,
-                                date: parsedDate,
-                                balance:bal,
-                                fDate:parsedDate.toLocaleDateString()
+                                $scope.events.push({
+                                    summary:item.summary,
+                                    date: parsedDate,
+                                    balance:bal,
+                                    fDate:parsedDate.toLocaleDateString()
 
-                            });
+                                });
 
-                            $scope.rBalance = bal;
+                                $scope.rBalance = bal;
+                            }
                         }
                     });
                     $scope.$apply();
@@ -224,21 +226,26 @@ function MainCtrl($scope, $localStorage){
         valueStr = valueStr.replace(/[a-zA-Z?><\s$]/g,"");
         var nums = valueStr.match(/[0-9.]+/g);
         var ops = valueStr.match(/[\-\+]/);
-        if(nums.length > 0){
-            num = parseFloat(nums[0]);
-        }else{
-            num = 0.00;
-        }
-        if(ops!=null){
-            if(ops.length > 0){
-                op = ops[0]; 
+        try{
+            if(nums.length > 0){
+                num = parseFloat(nums[0]);
+            }else{
+                num = 0.00;
+            }
+            if(ops!=null){
+                if(ops.length > 0){
+                    op = ops[0]; 
+                }else{
+                    op = null;
+                }
             }else{
                 op = null;
             }
-        }else{
-            op = null;
+            return {'op':op, 'num':num};
+        }catch(e){
+            //.. could not parse
+            return null
         }
-        return {'op':op, 'num':num};
     }
     
     $scope.getDate = function(item){
