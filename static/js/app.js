@@ -2,7 +2,7 @@ var app = angular.module("cal", ["ngStorage"]);
 
 
 function MainCtrl($scope, $localStorage){
-    $scope.$storage = $localStorage.$default({startDate:null, calId:null, calSummary:null, dateIsSet:false, sBalance:null});
+    $scope.$storage = $localStorage.$default({startDate:null, calId:null, calSummary:null, dateIsSet:false, sBalance:null, numMonths:3});
     $scope.authenticated = false;
     $scope.startDate = "1/1/2014";
     $scope.cals = [];
@@ -51,17 +51,20 @@ function MainCtrl($scope, $localStorage){
 
     $scope.getEvents = function(){
         var date = new Date($scope.$storage.startDate);
-        var prevD = new Date(date.getTime() + (-1 * 24 * 60 * 60 * 1000))
+        var prevD = new Date(date.getTime() + (-1 * 24 * 60 * 60 * 1000));
+        var maxTime = new Date(new Date(date).setMonth(date.getMonth()+ parseInt($scope.$storage.numMonths)));
         var bal;
         var val;
-        
+
         $scope.events = [];
+
         gapi.client.load('calendar', 'v3', function() {
             var request = gapi.client.calendar.events.list({
                 'calendarId': $scope.$storage.calId,
                 'orderBy':'startTime',
                 'singleEvents':true,
-                'timeMin': prevD.toISOString()
+                'timeMin': prevD.toISOString(),
+                'timeMax': maxTime.toISOString()
             });
             request.execute(function(resp){
                 if(resp.hasOwnProperty("items")){
@@ -146,6 +149,7 @@ function MainCtrl($scope, $localStorage){
         var data = $scope.events.slice(0);
         // we always have to prepend the start date/balance
         var sDateParsed = d3parseDate($scope.$storage.startDate); // parsed start date
+
         data.unshift({
             date: sDateParsed,
             balance: $scope.$storage.sBalance,
@@ -184,8 +188,8 @@ function MainCtrl($scope, $localStorage){
           .datum(data)
           .attr("class", "line")
           .attr("d", function(d){
-                    var l = line(d);
-                    return l;
+                var l = line(d);
+                return l;
           });
 
 
@@ -262,6 +266,10 @@ function MainCtrl($scope, $localStorage){
         return date;
     };
 
+    $scope.monthsChange = function(){
+        $scope.getEvents();
+    }
+
     $scope.init = function(){
         $scope.authenticate(function(){
             if($scope.$storage.calId == null){
@@ -275,6 +283,7 @@ function MainCtrl($scope, $localStorage){
             }
             
         });
+
     }
 
 }

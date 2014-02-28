@@ -49,12 +49,16 @@
             </div>
 
             <div ng-show="authenticated" class="row">
+
                 <div class="col-md-12" ng-show="!edit && $storage.calId != null && $storage.dateIsSet" id="settings-info">
                     <h5>Start Date: {{$storage.startDate}}</h5>
                     <h5>Starting Balance: ${{$storage.sBalance}}</h5>
                     <button class="btn btn-xs btn-default" ng-click="edit=true"> Change Settings</button>
                 </div>
-                
+                <div id="controls" class="col-md-12">
+                    <label># of Months: {{$storage.numMonths}} </label>
+                    <input id="months" ng-model="$storage.numMonths" type="range" min="1" max="12"  ng-change="monthsChange()"/>
+                </div>
                 <div ng-show="events.length > 0" class="col-md-12" id="events">
                     <div id="chart-wrap">
                      
