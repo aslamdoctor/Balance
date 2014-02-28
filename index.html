@@ -55,7 +55,7 @@
                     <h5>Starting Balance: ${{$storage.sBalance}}</h5>
                     <button class="btn btn-xs btn-default" ng-click="edit=true"> Change Settings</button>
                 </div>
-                <div id="controls" class="col-md-12">
+                <div id="controls" class="col-md-3">
                     <label># of Months: {{$storage.numMonths}} </label>
                     <input id="months" ng-model="$storage.numMonths" type="range" min="1" max="12"  ng-change="monthsChange()"/>
                 </div>
@@ -63,7 +63,7 @@
                     <div id="chart-wrap">
                      
                     </div>
-                    <table class="table table-striped table-condensed">
+                    <table class="table table-striped table-condensed table-hover">
                         <thead>
                             <tr>
                                 <th>Date</th>

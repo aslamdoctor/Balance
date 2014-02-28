@@ -86,7 +86,7 @@ function MainCtrl($scope, $localStorage){
                                 $scope.events.push({
                                     summary:item.summary,
                                     date: parsedDate,
-                                    balance:bal,
+                                    balance: bal.toFixed(2),
                                     fDate:parsedDate.toLocaleDateString()
 
                                 });
@@ -215,9 +215,12 @@ function MainCtrl($scope, $localStorage){
     $scope.setDate = function(){
         //TODO validate
         if($scope.$storage.sBalance != null && $scope.$storage.sBalance != ""){
-            $scope.$storage.dateIsSet = true;
-            $scope.getEvents();
-            $scope.edit = false;
+            // validate sBalance
+            if(!isNaN($scope.$storage.sBalance)){
+                $scope.$storage.dateIsSet = true;
+                $scope.getEvents();
+                $scope.edit = false;
+            }
         }
     }
 
