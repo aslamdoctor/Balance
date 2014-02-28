@@ -3,8 +3,7 @@
     cursor:pointer;
 }
 #settings-info button,
-#cal-info button
-{
+#cal-info button{
     visibility:hidden;
 }
 
@@ -21,7 +20,7 @@
 .axis path,
 .axis line {
   fill: none;
-  stroke: #e3e3e3;
+  stroke: #f3f3f3;
   shape-rendering: crispEdges;
 }
 
@@ -31,7 +30,8 @@
 
 .line {
   fill: none;
-  stroke: rgb(111, 240, 9);
-  stroke-width: 2px;
+  stroke: rgb(9, 129, 240);
+  stroke-width: 1px;
+  stroke-dasharray:5;
 }
 

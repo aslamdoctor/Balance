@@ -17,8 +17,9 @@
                 with your google account </h4>
 
                 <div id="cal-info" ng-show="authenticated && $storage.calId != null" class="col-md-12">
-                    <h4>Calendar: {{$storage.calSummary}} </h2>
-                    <button class="btn btn-xs btn-default" ng-click="getCalendars()"> Change Calendar</button>
+                    <h4>Calendar: {{$storage.calSummary}}
+                        <button class="btn btn-xs btn-default" ng-click="getCalendars()"> Change Calendar</button>
+                    </h4>
                 </div>
             
             </div>
@@ -68,7 +69,7 @@
                         <thead>
                         <tbody>
                             <tr ng-repeat="e in events">
-                                <td>{{e.date}}</td> <td>{{e.summary}}</td> <td>${{e.balance}}</td>
+                                <td>{{e.fDate}}</td> <td>{{e.summary}}</td> <td>${{e.balance}}</td>
                             </tr>
                         </tbody>
                     </table>

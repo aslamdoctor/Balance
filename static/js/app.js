@@ -41,10 +41,12 @@ function MainCtrl($scope, $localStorage){
     
     $scope.setCal = function(event, cal){
         event.preventDefault();
-        $scope.$storage.calId = cal.id;
-        $scope.$storage.calSummary = cal.summary;
+        if(cal.id != $scope.$storage.calId){
+            $scope.$storage.calId = cal.id;
+            $scope.$storage.calSummary = cal.summary;
+        }
         $scope.calSelector = false;
-        $scope.$apply();
+        //$scope.$apply();
     }
 
     $scope.getEvents = function(){
@@ -74,10 +76,15 @@ function MainCtrl($scope, $localStorage){
                             bal = $scope.rBalance + val.num;
                         }          
                         if(val.op != null){
+                            var rawDate = $scope.getDate(item);
+                            var parsedDate =  d3.time.format("%Y-%m-%d").parse(rawDate);
+
                             $scope.events.push({
                                 summary:item.summary,
-                                date:$scope.getDate(item),
-                                balance:bal
+                                date: parsedDate,
+                                balance:bal,
+                                fDate:parsedDate.toLocaleDateString()
+
                             });
 
                             $scope.rBalance = bal;
@@ -134,13 +141,17 @@ function MainCtrl($scope, $localStorage){
             .append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
-        var data = $scope.events;
+        var data = $scope.events.slice(0);
+        // we always have to prepend the start date/balance
+        var sDateParsed = d3parseDate($scope.$storage.startDate); // parsed start date
         data.unshift({
-            date: $scope.$storage.startDate,
-            balance: $scope.$storage.sBalance
+            date: sDateParsed,
+            balance: $scope.$storage.sBalance,
+            summary : "Starting Balance",
+            fDate: sDateParsed.toLocaleDateString()
+            
         })
         data.forEach(function(d) {
-            d.date = d3parseDate(d.date);
             d.balance = +d.balance;
         });
 
@@ -170,9 +181,29 @@ function MainCtrl($scope, $localStorage){
         svg.append("path")
           .datum(data)
           .attr("class", "line")
-          .attr("d", line);
-            
-    
+          .attr("d", function(d){
+                    var l = line(d);
+                    return l;
+          });
+
+
+        var circs = svg.selectAll("circle")
+            .data(data)
+            .enter()
+            .append("circle")
+            .attr("r", 5)
+            .style("fill", function(d) { return "#C93D75"})
+            .attr("cx", function(d){
+                return x(d.date);
+            })
+            .attr("cy", function(d){
+                return y(d.balance);
+            })
+            .append("svg:title")
+            .text(function(d){
+                return "D: " +  d.summary  + "\nB: $" + d.balance ;   
+            })
+
     }
 
     $scope.setDate = function(){
