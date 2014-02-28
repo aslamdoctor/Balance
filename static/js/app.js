@@ -2,8 +2,7 @@ var app = angular.module("cal", ["ngStorage"]);
 
 
 function MainCtrl($scope, $localStorage){
-    $scope.$storage = $localStorage.$default({startDate:null, calId:null, calSummary:null, dateIsSet:false});
-    $scope.calKey = "Balance";
+    $scope.$storage = $localStorage.$default({startDate:null, calId:null, calSummary:null, dateIsSet:false, sBalance:null});
     $scope.authenticated = false;
     $scope.startDate = "1/1/2014";
     $scope.cals = [];
@@ -25,6 +24,7 @@ function MainCtrl($scope, $localStorage){
     }
 
     $scope.getCalendars = function(){
+        $scope.calSelector = true;
         gapi.client.load('calendar', 'v3', function() {
             var request = gapi.client.calendar.calendarList.list();
             request.execute(function(resp){
@@ -55,27 +55,25 @@ function MainCtrl($scope, $localStorage){
         
         $scope.events = [];
         gapi.client.load('calendar', 'v3', function() {
-            console.log(prevD.toISOString())
             var request = gapi.client.calendar.events.list({
                 'calendarId': $scope.$storage.calId,
                 'orderBy':'startTime',
                 'singleEvents':true,
-                'timeMax': prevD.toISOString()
+                'timeMin': prevD.toISOString()
             });
             request.execute(function(resp){
                 if(resp.hasOwnProperty("items")){
-                    $scope.sBalance = $scope.parseValue(resp.items[0].summary).num;
-                    $scope.rBalance = $scope.sBalance; // always reset running balance
+                    //$scope.sBalance = $scope.parseValue(resp.items[0].summary).num;
+                    $scope.rBalance = $scope.$storage.sBalance; // always reset running balance
                     angular.forEach(resp.items, function(item, i){
                         // starting balance is always [0]
-                        if(i>0){
-                            val = $scope.parseValue(item.summary); // parse the value for this event
-                            if(val.op == "-"){
-                                bal = $scope.rBalance - val.num;
-                            }else if(val.op == "+"){
-                                bal = $scope.rBalance + val.num;
-                            }          
-                            
+                        val = $scope.parseValue(item.summary); // parse the value for this event
+                        if(val.op == "-"){
+                            bal = $scope.rBalance - val.num;
+                        }else if(val.op == "+"){
+                            bal = $scope.rBalance + val.num;
+                        }          
+                        if(val.op != null){
                             $scope.events.push({
                                 summary:item.summary,
                                 date:$scope.getDate(item),
@@ -85,20 +83,105 @@ function MainCtrl($scope, $localStorage){
                             $scope.rBalance = bal;
                         }
                     });
+                    $scope.$apply();
+                    // also draw the chart;
+                    $scope.updateChart();
 
-                    console.log($scope.events);
                 }else{
-                 
                     console.log("No Events");
                 }
             });
          });
     }
 
+    $scope.updateChart = function(){
+        var c = document.getElementById("chart-wrap");
+        var s = document.getElementsByTagName("svg");
+        try{
+            c.removeChild(s[0]);
+        }catch(e){
+            //..
+        }
+        var margin = {top: 20, right: 20, bottom: 20, left: 50},
+        width = c.scrollWidth - margin.left - margin.right,
+        height = c.scrollHeight - margin.top - margin.bottom;
+
+        var d3parseDate = d3.time.format("%Y-%m-%d").parse;
+        
+        var x = d3.time.scale()
+            .range([0, width]);
+
+        var y = d3.scale.linear()
+            .range([height, 0]);
+
+        var xAxis = d3.svg.axis()
+            .scale(x)
+            .orient("bottom")
+            .ticks(10);
+
+        var yAxis = d3.svg.axis()
+            .scale(y)
+            .orient("left")
+            .ticks(10);
+
+        var line = d3.svg.line()
+            .x(function(d) { return x(d.date); })
+            .y(function(d) { return y(d.balance); });
+
+        var svg = d3.select("#chart-wrap").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+            
+        var data = $scope.events;
+        data.unshift({
+            date: $scope.$storage.startDate,
+            balance: $scope.$storage.sBalance
+        })
+        data.forEach(function(d) {
+            d.date = d3parseDate(d.date);
+            d.balance = +d.balance;
+        });
+
+        x.domain(d3.extent(data, function(d) { return d.date; }));
+        y.domain(d3.extent(data, function(d) { return d.balance; }));
+
+        svg.append("g")
+          .attr("class", "x axis")
+          .attr("transform", "translate(0," + height + ")")
+          .call(xAxis
+                .tickSize(-height, 0, 0)
+           );
+
+        svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis
+            .tickSize(-width, 0, 0)
+           )
+
+          .append("text")
+          .attr("transform", "rotate(-90)")
+          .attr("y", 6)
+          .attr("dy", ".71em")
+          .style("text-anchor", "end")
+          .text("Balance($)");
+
+        svg.append("path")
+          .datum(data)
+          .attr("class", "line")
+          .attr("d", line);
+            
+    
+    }
+
     $scope.setDate = function(){
         //TODO validate
-        $scope.$storage.dateIsSet = true;
-        $scope.getEvents();
+        if($scope.$storage.sBalance != null && $scope.$storage.sBalance != ""){
+            $scope.$storage.dateIsSet = true;
+            $scope.getEvents();
+            $scope.edit = false;
+        }
     }
 
     $scope.parseValue = function(valueStr){
@@ -148,7 +231,7 @@ function MainCtrl($scope, $localStorage){
                 $scope.getCalendars();
             }else{
                 $scope.calSelector = false;
-                if($scope.$storage.startDate != null){
+                if($scope.$storage.dateIsSet){
                     $scope.getEvents();
                 }
             }

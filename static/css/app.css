@@ -1,0 +1,37 @@
+
+#settings-info, #cal-info {
+    cursor:pointer;
+}
+#settings-info button,
+#cal-info button
+{
+    visibility:hidden;
+}
+
+#settings-info:hover button,
+#cal-info:hover button{
+    visibility:visible;
+}
+
+#chart-wrap{
+    min-height:400px;
+    font-size:10px;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #e3e3e3;
+  shape-rendering: crispEdges;
+}
+
+.x.axis path {
+  display: none;
+}
+
+.line {
+  fill: none;
+  stroke: rgb(111, 240, 9);
+  stroke-width: 2px;
+}
+
