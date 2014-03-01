@@ -24,6 +24,7 @@ function MainCtrl($scope, $localStorage){
     }
 
     $scope.getCalendars = function(){
+        $scope.cals = [];
         $scope.calSelector = true;
         gapi.client.load('calendar', 'v3', function() {
             var request = gapi.client.calendar.calendarList.list();
@@ -44,6 +45,9 @@ function MainCtrl($scope, $localStorage){
         if(cal.id != $scope.$storage.calId){
             $scope.$storage.calId = cal.id;
             $scope.$storage.calSummary = cal.summary;
+        }
+        if($scope.$storage.startDate!=null && $scope.$storage.sBalance != null){
+            $scope.getEvents();
         }
         $scope.calSelector = false;
         //$scope.$apply();
@@ -82,7 +86,7 @@ function MainCtrl($scope, $localStorage){
                             if(val.op != null){
                                 var rawDate = $scope.getDate(item);
                                 var parsedDate =  d3.time.format("%Y-%m-%d").parse(rawDate);
-
+                                bal = parseFloat(bal); // silly fix
                                 $scope.events.push({
                                     summary:item.summary,
                                     date: parsedDate,

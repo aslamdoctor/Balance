@@ -1,4 +1,47 @@
 
+html{
+    height:100%;
+}
+
+body{
+    background:#86466F;
+    height:100%;
+}
+
+.navbar{
+    border:none;
+    background:#5F2D4D;
+    border-radius: 0px;
+    color:#fff;
+    margin-bottom:10px;
+}   
+
+.container.main{
+    background:#fff;
+    border:thin solid #644A5B;
+    border-top:none;
+    border-bottom:none;
+    padding-bottom: 2%;
+    padding-top:10px;
+}
+
+.fill{
+    min-height:100%;
+}
+
+h5{
+    font-weight:bold;
+
+}
+
+h5 .setting, label .setting{
+    font-weight:normal;
+}
+
+#settings button{
+    margin:5px 0;
+}
+
 #settings-info, #cal-info {
     cursor:pointer;
 }
@@ -12,15 +55,22 @@
     visibility:visible;
 }
 
+table{
+    font-size:12px;
+}
+
 #chart-wrap{
     min-height:400px;
     font-size:10px;
+    padding:10px;
+    margin:10px 0;
+    background:#f8f8f8;
 }
 
 .axis path,
 .axis line {
   fill: none;
-  stroke: #f3f3f3;
+  stroke: #e3e3e3;
   shape-rendering: crispEdges;
 }
 
