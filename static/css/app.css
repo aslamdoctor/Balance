@@ -29,6 +29,30 @@ body{
     min-height:100%;
 }
 
+
+thead{
+    background:#5F2D4D;
+    color:#fff;
+    border-left:none;
+    border-right:none;
+    border-top: none !important;
+    border-bottom:none !important;
+}
+
+thead tr{
+    border:none !important;
+}
+
+thead tr th{
+    border-top:none !important;
+    border-bottom:none !important;
+    border-color:rgb(108, 55, 116) !important;
+}
+
+circle{
+    opacity:.7;
+}
+
 h5{
     font-weight:bold;
 
@@ -57,6 +81,7 @@ h5 .setting, label .setting{
 
 table{
     font-size:12px;
+    border-top:none !important;
 }
 
 #chart-wrap{

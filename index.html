@@ -38,9 +38,10 @@
                         <div class="form-group" ng-class="{hasError: !dateIsSet}">
                             <label>Choose a Start Date</label>
                             <input ng-model="$storage.startDate" type="date" class="form-control">
+                            <label>Choose a End Date</label>
+                            <input ng-model="$storage.endDate" type="date" class="form-control">
                             <label>Set a starting balance</label>
                             <div class="input-group">
-
                                 <span class="input-group-addon">$</span>
                                 <input class="form-control" ng-model="$storage.sBalance" type="text">
                             </div>
@@ -63,13 +64,18 @@
             <div ng-show="authenticated" class="row">
 
                 <div class="col-md-6" ng-show="!edit && $storage.calId != null && $storage.dateIsSet" id="settings-info">
-                    <h5>Start Date: <span class="setting">{{$storage.startDate}}</span></h5>
                     <h5>Starting Balance: <span class="setting">${{$storage.sBalance}}</span></h5>
+                    <h5>Start Date: <span class="setting">{{$storage.startDate}}</span></h5>
+                    <h5>End Date: <span class="setting">{{$storage.endDate}}</span></h5>
                     <button class="btn btn-xs btn-default" ng-click="edit=true"> Change Settings</button>
                 </div>
-                <div id="controls" class="col-md-6">
-                    <label># of Months: <span class="setting">{{$storage.numMonths}}</span> </label>
-                    <input id="months" ng-model="$storage.numMonths" type="range" min="1" max="12"  ng-change="monthsChange()"/>
+                <div id="controls" class="col-md-3">
+                    <label>Start Filter: <span class="setting">{{filterStart | date:'MM/dd/yyyy'}}</span> </label>
+                    <input id="filterStart" ng-model="filterStart" type="range" min="{{timestamps[0]}}" max="{{filterEnd}}"  ng-change="filterEvents()"/>
+                </div>
+                <div class="col-md-3">
+                    <label>End Filter: <span class="setting">{{filterEnd | date:'MM/dd/yyyy'}}</span> </label>
+                    <input id="filterEnd" ng-model="filterEnd" type="range" min="{{filterStart}}" max="{{timestamps[timestamps.length-1]}}"  ng-change="filterEvents()"/>
                 </div>
                 <div ng-show="events.length > 0" class="col-md-12" id="events">
                     <div id="chart-wrap">

@@ -2,7 +2,7 @@ var app = angular.module("cal", ["ngStorage"]);
 
 
 function MainCtrl($scope, $localStorage){
-    $scope.$storage = $localStorage.$default({startDate:null, calId:null, calSummary:null, dateIsSet:false, sBalance:null, numMonths:3});
+    $scope.$storage = $localStorage.$default({startDate:null, endDate:null, calId:null, calSummary:null, dateIsSet:false, sBalance:null, numMonths:3});
     $scope.authenticated = false;
     $scope.startDate = "1/1/2014";
     $scope.cals = [];
@@ -55,24 +55,35 @@ function MainCtrl($scope, $localStorage){
 
     $scope.getEvents = function(){
         var date = new Date($scope.$storage.startDate);
+        if($scope.$storage.endDate != null){
+            var eDate = new Date($scope.$storage.endDate);
+        }else{
+            var eDate = null;
+        }
         var prevD = new Date(date.getTime() + (-1 * 24 * 60 * 60 * 1000));
-        var maxTime = new Date(new Date(date).setMonth(date.getMonth()+ parseInt($scope.$storage.numMonths)));
         var bal;
         var val;
 
         $scope.events = [];
+        $scope.eventsData = []; // full set
+        $scope.timestamps = [prevD.getTime()]; // always insert start date
 
         gapi.client.load('calendar', 'v3', function() {
-            var request = gapi.client.calendar.events.list({
+            var rParams = {
                 'calendarId': $scope.$storage.calId,
                 'orderBy':'startTime',
                 'singleEvents':true,
-                'timeMin': prevD.toISOString(),
-                'timeMax': maxTime.toISOString()
-            });
+                'timeMin': prevD.toISOString()
+                //'timeMax': maxTime.toISOString()
+            };
+            
+            if(eDate != null){
+                rParams['timeMax'] = eDate.toISOString();
+            }
+
+            var request = gapi.client.calendar.events.list(rParams);
             request.execute(function(resp){
                 if(resp.hasOwnProperty("items")){
-                    //$scope.sBalance = $scope.parseValue(resp.items[0].summary).num;
                     $scope.rBalance = $scope.$storage.sBalance; // always reset running balance
                     angular.forEach(resp.items, function(item, i){
                         // starting balance is always [0]
@@ -87,18 +98,22 @@ function MainCtrl($scope, $localStorage){
                                 var rawDate = $scope.getDate(item);
                                 var parsedDate =  d3.time.format("%Y-%m-%d").parse(rawDate);
                                 bal = parseFloat(bal); // silly fix
-                                $scope.events.push({
+                                $scope.timestamps.push(parsedDate.getTime());
+                                $scope.eventsData.push({
                                     summary:item.summary,
                                     date: parsedDate,
                                     balance: bal.toFixed(2),
                                     fDate:parsedDate.toLocaleDateString()
-
                                 });
-
                                 $scope.rBalance = bal;
                             }
                         }
                     });
+                    $scope.timestamps.sort();
+                    $scope.filterStart = $scope.timestamps[0];
+                    $scope.filterEnd = $scope.timestamps[$scope.timestamps.length-1]
+                    // by default $scope.events should be == to $scope.dataEvents (the full data set);
+                    $scope.events = $scope.eventsData.slice(0);
                     $scope.$apply();
                     // also draw the chart;
                     $scope.updateChart();
@@ -151,16 +166,29 @@ function MainCtrl($scope, $localStorage){
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
             
         var data = $scope.events.slice(0);
+        
+            
         // we always have to prepend the start date/balance
         var sDateParsed = d3parseDate($scope.$storage.startDate); // parsed start date
+        //but only if its not filtered out
+        if(angular.isUndefined($scope.filterStart)){ // check for filtering 
+            data.unshift({
+                date: sDateParsed,
+                balance: $scope.$storage.sBalance,
+                summary : "Starting Balance",
+                fDate: sDateParsed.toLocaleDateString()
+            });
+        }else{
+            if(sDateParsed.getTime() > $scope.filterStart){
+                data.unshift({
+                    date: sDateParsed,
+                    balance: $scope.$storage.sBalance,
+                    summary : "Starting Balance",
+                    fDate: sDateParsed.toLocaleDateString()
+                });
+            }
+        }
 
-        data.unshift({
-            date: sDateParsed,
-            balance: $scope.$storage.sBalance,
-            summary : "Starting Balance",
-            fDate: sDateParsed.toLocaleDateString()
-            
-        })
         data.forEach(function(d) {
             d.balance = +d.balance;
         });
@@ -202,7 +230,9 @@ function MainCtrl($scope, $localStorage){
             .enter()
             .append("circle")
             .attr("r", 5)
-            .style("fill", function(d) { return "#C93D75"})
+            .style("fill", function(d) {
+                return '#'+ Math.floor(Math.random()*16777215).toString(16);
+            })
             .attr("cx", function(d){
                 return x(d.date);
             })
@@ -211,7 +241,7 @@ function MainCtrl($scope, $localStorage){
             })
             .append("svg:title")
             .text(function(d){
-                return "D: " +  d.summary  + "\nB: $" + d.balance ;   
+                return "A: " +  d.summary  + "\nB: $" + d.balance + "\nD: " + d.date.toLocaleDateString();   
             })
 
     }
@@ -275,6 +305,34 @@ function MainCtrl($scope, $localStorage){
 
     $scope.monthsChange = function(){
         $scope.getEvents();
+    }
+    
+    $scope.filterEvents = function(){
+        // fitler the events by start and end date;
+        var end = true;
+        var start = true;
+        var d;
+        $scope.events = $scope.eventsData.filter(function(e){
+            d = e.date.getTime(); // return timestamp
+            if(!angular.isUndefined($scope.filterEnd)){
+                //is e.date before end Date?
+                if(d < $scope.filterEnd ){
+                    end = true;
+                }else{
+                    end = false;
+                } 
+            }
+            if(!angular.isUndefined($scope.filterStart)){
+                if(d > $scope.filterStart){
+                    start = true;
+                }else{
+                    start = false;
+                }
+            }
+            return start && end;
+            
+        });
+        $scope.updateChart();
     }
 
     $scope.init = function(){
