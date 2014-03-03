@@ -9,13 +9,14 @@
 
      </head>
 <body>
+    <!--
         <nav class="navbar navbar-default" role="navigation">
             <div class="container">
                 <div class="navbar-header">
                     <a class="navbar-brand" href="/"></a>
                 </div>
             </div>
-        </nav>
+        </nav>-->
         <div id="" ng-controller="MainCtrl" class="container fill main">
             <div class="row">
                 <div class="col-md-12">
@@ -31,8 +32,21 @@
             
             </div>
 
-            <div id="settings" ng-show="authenticated && $storage.calId != null && $storage.dateIsSet == false || edit==true" class="row">
-                <div class="col-md-6">
+           
+            
+            <div id="calendars" ng-show="calSelector && authenticated" class="row">
+                <div class="col-md-6 col-md-offset-3">
+                    <h3>Choose a Calendar</h3>
+                    <div class="list-group">
+                        <a href="#" ng-click='setCal($event, cal)' class="list-group-item" ng-repeat="cal in cals">{{cal.summary}}</a>
+                    </div>
+                    <button ng-show="$storage.calId != false" class="btn btn-default btn-sm" ng-click="calSelector = false">Cancel</button>                    
+
+                </div>
+            </div>
+
+             <div id="settings" ng-show="authenticated && $storage.calId != null && $storage.dateIsSet == false || edit==true" class="row">
+                <div class="col-md-6 col-md-offset-3">
                     <h3>Settings</h3>
                     <form role="form">
                         <div class="form-group" ng-class="{hasError: !dateIsSet}">
@@ -46,18 +60,11 @@
                                 <input class="form-control" ng-model="$storage.sBalance" type="text">
                             </div>
 
-                                <button class="btn btn-default btn-sm" ng-click="setDate();" ng-disabled="$storage.sBalance == null || $storage.startDate == null">Done</button>        
+                            <button class="btn btn-default btn-sm" ng-click="setDate();" ng-disabled="$storage.sBalance == null || $storage.startDate == null">Done</button>                    
+                            <button ng-show = "$storage.dateIsSet != false" class="btn btn-default btn-sm" ng-click="edit=false">Cancel</button>                    
+
                         </div>
                     </form>
-                </div>
-            </div>
-            
-            <div id="calendars" ng-show="calSelector && authenticated" class="row">
-                <div class="col-md-12 well">
-                    <h2>Choose a Calendar</h2>
-                    <ul class="list-group">
-                        <li class="list-group-item" ng-repeat="cal in cals"><a href="#" ng-click='setCal($event, cal)'>{{cal.summary}}</a></li>
-                    </ul>
                 </div>
             </div>
 
@@ -69,11 +76,11 @@
                     <h5>End Date: <span class="setting">{{$storage.endDate}}</span></h5>
                     <button class="btn btn-xs btn-default" ng-click="edit=true"> Change Settings</button>
                 </div>
-                <div id="controls" ng-show="eventsData.length > 0" class="col-md-3">
+                <div ng-show="eventsData.length > 0 && !edit" class="col-md-3 controls">
                     <label>Start Filter: <span class="setting">{{filterStart | date:'MM/dd/yyyy'}}</span> </label>
                     <input id="filterStart" ng-model="filterStart" type="range" min="{{timestamps[0]}}" max="{{filterEnd}}"  ng-change="filterEvents()"/>
                 </div>
-                <div ng-show="eventsData.length > 0" class="col-md-3">
+                <div ng-show="eventsData.length > 0 && !edit" class="col-md-3 controls">
                     <label>End Filter: <span class="setting">{{filterEnd | date:'MM/dd/yyyy'}}</span> </label>
                     <input id="filterEnd" ng-model="filterEnd" type="range" min="{{filterStart}}" max="{{timestamps[timestamps.length-1]}}"  ng-change="filterEvents()"/>
                 </div>

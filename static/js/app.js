@@ -249,9 +249,9 @@ function MainCtrl($scope, $localStorage){
             .attr("id", "today-line");
         // add the text for the today marker
         svg.append("rect")
-            .attr("y", -20)
-            .attr("x", tX)
-            .attr("width", 50)
+            .attr("y", -19)
+            .attr("x", tX -1)
+            .attr("width", 85)
             .attr("height", 20);
 
         svg.append("text")
@@ -259,7 +259,7 @@ function MainCtrl($scope, $localStorage){
             .attr("y", -5)
             .attr("x", tX + 4)
             .attr("fill", "#fff")
-            .text(today.toLocaleDateString()); 
+            .text("Today: " + today.toLocaleDateString()); 
 
     }
 
