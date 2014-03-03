@@ -7,6 +7,7 @@ function MainCtrl($scope, $localStorage){
     $scope.startDate = "1/1/2014";
     $scope.cals = [];
     $scope.calId;
+    $scope.twoDaysMill = 86400000 * 2;
 
     $scope.authenticate = function(callback){
         var config = {
@@ -74,7 +75,6 @@ function MainCtrl($scope, $localStorage){
                 'orderBy':'startTime',
                 'singleEvents':true,
                 'timeMin': prevD.toISOString()
-                //'timeMax': maxTime.toISOString()
             };
             
             if(eDate != null){
@@ -192,9 +192,10 @@ function MainCtrl($scope, $localStorage){
         data.forEach(function(d) {
             d.balance = +d.balance;
         });
-
+        
         x.domain(d3.extent(data, function(d) { return d.date; }));
-        y.domain(d3.extent(data, function(d) { return d.balance; }));
+        var yEx = d3.extent(data, function(d) { return d.balance; })
+        y.domain(yEx);
 
         svg.append("g")
           .attr("class", "x axis")
@@ -209,13 +210,6 @@ function MainCtrl($scope, $localStorage){
             .tickSize(-width, 0, 0)
            )
 
-          .append("text")
-          .attr("transform", "rotate(-90)")
-          .attr("y", 6)
-          .attr("dy", ".71em")
-          .style("text-anchor", "end")
-          .text("Balance($)");
-
         svg.append("path")
           .datum(data)
           .attr("class", "line")
@@ -223,7 +217,6 @@ function MainCtrl($scope, $localStorage){
                 var l = line(d);
                 return l;
           });
-
 
         var circs = svg.selectAll("circle")
             .data(data)
@@ -244,12 +237,37 @@ function MainCtrl($scope, $localStorage){
                 return "A: " +  d.summary  + "\nB: $" + d.balance + "\nD: " + d.date.toLocaleDateString();   
             })
 
+
+        // draw a today marker
+        var today = new Date(Date.now())
+        var tX = x(today);
+        var todayMarker = svg.append("line")
+            .attr("x1", tX)
+            .attr("x2", tX)
+            .attr("y1", y(0))
+            .attr("y2", y(yEx[1]))
+            .attr("id", "today-line");
+        // add the text for the today marker
+        svg.append("rect")
+            .attr("y", -20)
+            .attr("x", tX)
+            .attr("width", 50)
+            .attr("height", 20);
+
+        svg.append("text")
+            .attr("id", "today-text")
+            .attr("y", -5)
+            .attr("x", tX + 4)
+            .attr("fill", "#fff")
+            .text(today.toLocaleDateString()); 
+
     }
 
     $scope.setDate = function(){
         //TODO validate
         if($scope.$storage.sBalance != null && $scope.$storage.sBalance != ""){
             // validate sBalance
+            $scope.$storage.sBalance = parseFloat($scope.$storage.sBalance)
             if(!isNaN($scope.$storage.sBalance)){
                 $scope.$storage.dateIsSet = true;
                 $scope.getEvents();

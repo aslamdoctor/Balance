@@ -55,8 +55,8 @@
             <div id="calendars" ng-show="calSelector && authenticated" class="row">
                 <div class="col-md-12 well">
                     <h2>Choose a Calendar</h2>
-                    <ul>
-                        <li ng-repeat="cal in cals"><a href="#" ng-click='setCal($event, cal)'>{{cal.summary}}</a></li>
+                    <ul class="list-group">
+                        <li class="list-group-item" ng-repeat="cal in cals"><a href="#" ng-click='setCal($event, cal)'>{{cal.summary}}</a></li>
                     </ul>
                 </div>
             </div>
@@ -69,11 +69,11 @@
                     <h5>End Date: <span class="setting">{{$storage.endDate}}</span></h5>
                     <button class="btn btn-xs btn-default" ng-click="edit=true"> Change Settings</button>
                 </div>
-                <div id="controls" class="col-md-3">
+                <div id="controls" ng-show="eventsData.length > 0" class="col-md-3">
                     <label>Start Filter: <span class="setting">{{filterStart | date:'MM/dd/yyyy'}}</span> </label>
                     <input id="filterStart" ng-model="filterStart" type="range" min="{{timestamps[0]}}" max="{{filterEnd}}"  ng-change="filterEvents()"/>
                 </div>
-                <div class="col-md-3">
+                <div ng-show="eventsData.length > 0" class="col-md-3">
                     <label>End Filter: <span class="setting">{{filterEnd | date:'MM/dd/yyyy'}}</span> </label>
                     <input id="filterEnd" ng-model="filterEnd" type="range" min="{{filterStart}}" max="{{timestamps[timestamps.length-1]}}"  ng-change="filterEvents()"/>
                 </div>

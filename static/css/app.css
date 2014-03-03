@@ -110,3 +110,7 @@ table{
   stroke-dasharray:5;
 }
 
+#today-line{
+    stroke:#444;
+}
+
