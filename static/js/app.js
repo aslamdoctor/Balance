@@ -56,6 +56,8 @@ function MainCtrl($scope, $localStorage){
 
     $scope.getEvents = function(){
         var date = new Date($scope.$storage.startDate);
+        var t = new Date(Date.now());
+        $scope.today = {'stamp': t.getTime(), 'date': t, 'str':t.toLocaleDateString()};
         if($scope.$storage.endDate != null){
             var eDate = new Date($scope.$storage.endDate);
         }else{
@@ -74,7 +76,7 @@ function MainCtrl($scope, $localStorage){
                 'calendarId': $scope.$storage.calId,
                 'orderBy':'startTime',
                 'singleEvents':true,
-                'timeMin': prevD.toISOString()
+                'timeMin': date.toISOString()
             };
             
             if(eDate != null){
@@ -103,7 +105,10 @@ function MainCtrl($scope, $localStorage){
                                     summary:item.summary,
                                     date: parsedDate,
                                     balance: bal.toFixed(2),
-                                    fDate:parsedDate.toLocaleDateString()
+                                    fDate:parsedDate.toLocaleDateString(),
+                                    bOrA: $scope.compareToday(parsedDate), // is this event before or after today
+                                    op: val.op, // the operator
+                                    num: val.num // the intital value
                                 });
                                 $scope.rBalance = bal;
                             }
@@ -116,14 +121,30 @@ function MainCtrl($scope, $localStorage){
                     $scope.events = $scope.eventsData.slice(0);
                     $scope.$apply();
                     // also draw the chart;
+                    $scope.today.balance = $scope.getTodayBalance();
                     $scope.updateChart();
-
                 }else{
                     console.log("No Events");
                 }
             });
          });
     }
+
+    $scope.getTodayBalance = function(){
+        var beforeEvents = $scope.eventsData.filter(function(event){
+            return event.bOrA;
+        });
+
+        var sum = $scope.$storage.sBalance;
+        angular.forEach(beforeEvents, function(val){
+            if(val.op == "-"){
+                sum -= val.num;
+            }else if(val.op == "+"){
+                sum += val.num;
+            }
+        });
+        return sum;
+   }
 
     $scope.updateChart = function(){
         var c = document.getElementById("chart-wrap");
@@ -239,8 +260,7 @@ function MainCtrl($scope, $localStorage){
 
 
         // draw a today marker
-        var today = new Date(Date.now())
-        var tX = x(today);
+        var tX = x($scope.today.date);
         var todayMarker = svg.append("line")
             .attr("x1", tX)
             .attr("x2", tX)
@@ -251,7 +271,7 @@ function MainCtrl($scope, $localStorage){
         svg.append("rect")
             .attr("y", -19)
             .attr("x", tX -1)
-            .attr("width", 85)
+            .attr("width", 150)
             .attr("height", 20);
 
         svg.append("text")
@@ -259,7 +279,7 @@ function MainCtrl($scope, $localStorage){
             .attr("y", -5)
             .attr("x", tX + 4)
             .attr("fill", "#fff")
-            .text("Today: " + today.toLocaleDateString()); 
+            .text("Today: " + $scope.today.str + " $" + $scope.today.balance); 
 
     }
 
@@ -351,6 +371,14 @@ function MainCtrl($scope, $localStorage){
             
         });
         $scope.updateChart();
+    }
+
+    $scope.compareToday = function(date){
+        if($scope.today.stamp >= date.getTime()){
+            return true;
+        }else{
+            return false;
+        }
     }
 
     $scope.init = function(){
