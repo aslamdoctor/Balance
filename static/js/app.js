@@ -53,7 +53,9 @@ function MainCtrl($scope, $localStorage){
         $scope.calSelector = false;
         //$scope.$apply();
     }
-
+    $scope.refreshFeed = function(){
+        $scope.getEvents();
+    }
     $scope.getEvents = function(){
         var date = new Date($scope.$storage.startDate);
         var t = new Date(Date.now());

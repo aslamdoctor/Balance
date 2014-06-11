@@ -84,6 +84,9 @@
                     <label>End Filter: <span class="setting">{{filterEnd | date:'MM/dd/yyyy'}}</span> </label>
                     <input id="filterEnd" ng-model="filterEnd" type="range" min="{{filterStart}}" max="{{timestamps[timestamps.length-1]}}"  ng-change="filterEvents()"/>
                 </div>
+		<div class="col-md-12">
+			<button class="btn btn-default" ng-click="refreshFeed()">Refresh</button>
+		</div>
                 <div ng-show="events.length > 0" class="col-md-12" id="events">
                     <div id="chart-wrap">
                      
