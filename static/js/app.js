@@ -1,7 +1,7 @@
 var app = angular.module("cal", ["ngStorage"]);
 
-
-function MainCtrl($scope, $localStorage){
+app.controller('MainCtrl', ['$scope', '$localStorage', '$http', 
+	function ($scope, $localStorage, $http){
     $scope.$storage = $localStorage.$default({startDate:null, endDate:null, calId:null, calSummary:null, dateIsSet:false, sBalance:null, numMonths:3});
     $scope.authenticated = false;
     $scope.startDate = "1/1/2014";
@@ -10,18 +10,18 @@ function MainCtrl($scope, $localStorage){
     $scope.twoDaysMill = 86400000 * 2;
 
     $scope.authenticate = function(callback){
-        var config = {
-            'client_id': '457161246465-ttk9ko9oqe386d81uaga13n744mec3h0.apps.googleusercontent.com',
-            'scope': 'https://www.googleapis.com/auth/calendar'
-        };
-
-        gapi.auth.authorize(config, function() {
-            $scope.authenticated = true;
-            $scope.token = gapi.auth.getToken();
-            $scope.$apply();
-            callback();
-        });
-        
+			$http.get('client_secret.json').then(function(results) { 
+				var config = { 
+					scope: 'https://www.googleapis.com/auth/calendar',
+					client_id: results.data.web.client_id
+				};
+				gapi.auth.authorize(config, function() {
+						$scope.authenticated = true;
+						$scope.token = gapi.auth.getToken();
+						$scope.$apply();
+						callback();
+				});
+			});
     }
 
     $scope.getCalendars = function(){
@@ -384,6 +384,7 @@ function MainCtrl($scope, $localStorage){
     }
 
     $scope.init = function(){
+			
         $scope.authenticate(function(){
             if($scope.$storage.calId == null){
                 $scope.calSelector = true;
@@ -396,7 +397,6 @@ function MainCtrl($scope, $localStorage){
             }
             
         });
-
     }
 
-}
+}]);
